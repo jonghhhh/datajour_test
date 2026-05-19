@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인도 위로 돌진한 차량… 반복되는 도심 사고의 경고 - 탐사보도</title>
+    
+    <!-- Google Fonts: Noto Serif KR for body, Noto Sans KR for headings -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- External Libraries CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="./index.css">
+    
+    <!-- External Libraries JS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+
+    <!-- Header / Navigation -->
+    <nav class="side-nav">
+        <ul>
+            <li><a href="#hero">처음으로</a></li>
+            <li><a href="#section1">사고의 실태</a></li>
+            <li><a href="#section2">데이터 분석</a></li>
+            <li><a href="#section3">원인 분석</a></li>
+            <li><a href="#section4">대안과 결론</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <header id="hero" class="hero-section">
+        <div class="hero-bg"></div>
+        <div class="hero-content">
+            <h1 class="headline">인도 위로 돌진한 차량…<br>반복되는 도심 사고의 경고</h1>
+            <p class="subtitle">도심 속 일상을 위협하는 돌진 사고, 그 원인과 대안을 짚다</p>
+            <div class="byline">
+                <span class="author">탐사보도팀</span>
+                <span class="date">2026년 5월 19일</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="content-wrapper">
+        <!-- Section 1 -->
+        <section id="section1" class="article-section fade-in">
+            <p class="lead">
+                평일 오후, 도심 거리에서 흰색 승용차 한 대가 갑자기 인도를 넘어 건물 방향으로 돌진했다. 차량 앞부분은 심하게 파손됐고 보행로에는 범퍼와 부품 조각들이 흩어졌다. 사고 직후 경찰과 시민들이 현장을 통제했으며, 주변 상인들은 놀란 표정으로 상황을 지켜봤다.
+            </p>
+
+            <figure class="wide-figure">
+                <img src="./assets/photo_01.png" alt="사고 현장 사진">
+                <figcaption>최근 빈번하게 발생하는 도심 인도 돌진 사고 현장. 보행 공간의 안전이 위협받고 있다.</figcaption>
+            </figure>
+
+            <p>
+                다행히 큰 인명 피해는 없었지만, 유동 인구가 많은 시간대였다면 대형 사고로 이어질 수 있었다는 우려가 나왔다. 최근 들어 차량이 인도나 상가, 버스정류장 방향으로 돌진하는 사고는 더 이상 낯선 일이 아니다. 도심 곳곳에서 비슷한 유형의 사고가 반복되면서 시민들의 불안감도 커지고 있다.
+            </p>
+        </section>
+
+        <!-- Section 2 -->
+        <section id="section2" class="article-section fade-in">
+            <h2 class="section-title">보행 공간 침범 사고, 최근 5년 새 급증</h2>
+            <p>
+                교통 관련 기관의 가상 분석 자료에 따르면 최근 5년 사이 보행 공간 침범 사고는 약 30% 증가한 것으로 나타났다. 특히 상가 밀집 지역과 교차로 주변, 어린이보호구역 등 보행자 통행량이 많은 지역에서 사고 발생 빈도가 높게 나타났다.
+            </p>
+            
+            <div class="visualization-container">
+                <h3>🗺️ 시도별 사고건수 현황</h3>
+                <p class="viz-desc">전국 사고다발지역 표준데이터 기반 시도별 사고건수 합계. 파란색이 짙을수록 사고 발생이 빈번함을 의미합니다.</p>
+                <div id="map" class="chart-box"></div>
+            </div>
+
+            <p>
+                최근 도심 교통사고는 과거와 다른 양상을 보이고 있다. 단순 차량 충돌보다 차량이 인도나 건물 방향으로 돌진하는 형태가 늘어나고 있으며, 사고 장소도 대형 교차로뿐 아니라 상가 밀집 지역과 주택가 골목 등 생활권 중심으로 확대되는 추세다.
+            </p>
+            <p>
+                사고 차량 유형도 다양해지고 있다. 과거에는 일반 승용차 중심이었지만 최근에는 전기차와 스포츠유틸리티차량(SUV) 비중도 증가하고 있다. 교통 당국은 초반 가속력이 강한 차량이 늘어나면서 충격 규모 역시 커지는 경향을 보인다고 분석한다.
+            </p>
+
+            <div class="visualization-container">
+                <h3>📊 17개 시도별 교통사고 상세 현황</h3>
+                <p class="viz-desc">X축: 사고건수, Y축: 사망자수, 원 크기: 전체 사상자수를 나타냅니다. (서울과 경기의 사고 규모가 압도적으로 높음을 확인할 수 있습니다.)</p>
+                <div class="chart-box">
+                    <canvas id="bubbleChart"></canvas>
+                </div>
+            </div>
+
+            <p>
+                지역별 차이도 나타난다. 수도권은 사고 건수가 많았고, 지방 중소도시는 최근 증가율이 두드러졌다. 일부 지자체에서는 상가 앞 인도나 횡단보도 주변에 차량 진입 방지 시설 설치를 확대하고 있지만, 여전히 많은 지역은 차량과 보행 공간의 경계가 충분하지 않은 상황이다.
+            </p>
+        </section>
+
+        <!-- Section 3 -->
+        <section id="section3" class="article-section fade-in">
+            <h2 class="section-title">페달 오조작·고령 운전자·도시 구조가 복합 작용</h2>
+            <p>
+                전문가들은 가장 큰 원인으로 페달 오조작과 운전자 주의 분산을 꼽는다. 브레이크 대신 가속페달을 밟는 사고가 반복되고 있으며, 스마트폰 사용이나 내비게이션 조작도 사고 위험을 높인다는 것이다.
+            </p>
+            <blockquote>
+                “고령층 운전자 자체를 문제로 볼 수는 없지만 순간 판단 속도와 반응 시간 저하 가능성은 분명 존재한다”
+            </blockquote>
+            <p>
+                고령 운전자 증가 역시 중요한 원인으로 지목된다. 도시 구조 문제를 지적하는 목소리도 나온다. 한 교통공학 교수는 “국내 도심은 차량 흐름 중심으로 설계된 곳이 많아 보행자를 보호할 물리적 장치가 부족하다”며 “차량이 인도로 진입하지 못하도록 하는 안전시설 확대가 필요하다”고 말했다.
+            </p>
+        </section>
+
+        <!-- Section 4 -->
+        <section id="section4" class="article-section fade-in">
+            <h2 class="section-title">“차량보다 사람 우선” 교통체계 전환 필요</h2>
+            <p>
+                전문가들은 사고 다발 지역을 중심으로 차량 진입 방지용 볼라드와 과속 저감 시설을 확대해야 한다고 강조한다. 또한 고령 운전자 안전교육 강화와 첨단 운전자 보조 시스템 보급 확대도 필요하다고 제안한다.
+            </p>
+
+            <figure class="wide-figure">
+                <img src="./assets/photo_02.jpg" alt="사고 예방 관련 사진">
+                <figcaption>사고 예방을 위해 설치되는 차량 진입 방지 볼라드와 보행자 보호 구역 시설. 물리적 방호벽 확대가 필수적이다.</figcaption>
+            </figure>
+
+            <p>
+                무엇보다 차량 이동 효율보다 보행자 안전을 우선하는 방향으로 도시 교통체계를 전환해야 한다는 지적이 나온다. 반복되는 도심 돌진 사고는 단순한 개인 실수 문제가 아니라, 도시 안전 시스템 전반을 다시 점검해야 한다는 경고라는 것이다.
+            </p>
+        </section>
+    </main>
+
+    <footer class="main-footer">
+        <div class="footer-content">
+            <p>본 기사는 가상의 데이터를 바탕으로 작성된 탐사보도 예시입니다.</p>
+            <p><strong>취재:</strong> 탐사보도팀 | <strong>데이터 출처:</strong> 전국교통사고다발지역표준데이터(가상 분석)</p>
+            <p><strong>제작:</strong> Gemini CLI Interactive Agent</p>
+            <p class="copyright">&copy; 2026 탐사보도 프로젝트. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Custom JS -->
+    <script src="./index.js"></script>
+</body>
+</html>
