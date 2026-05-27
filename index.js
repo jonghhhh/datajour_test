@@ -1,26 +1,11 @@
-/**
- * 탐사보도 프로젝트 - 인도 위로 돌진한 차량
- * 주요 기능: 시각화 로드, 스크롤 애니메이션
- */
-
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. 초기화
-    initVisualizations();
-    initScrollAnimations();
+    initMap();
+    initBubbleChart();
+    initScrollAnimation();
 });
 
-/**
- * 모든 시각화(지도, 차트) 초기화
- */
-function initVisualizations() {
-    renderChoroplethMap();
-    renderBubbleChart();
-}
-
-/**
- * Leaflet을 이용한 시도별 사고건수 단계구분도(Choropleth) 렌더링
- */
-function renderChoroplethMap() {
+/* 1. Leaflet Map (Choropleth) */
+function initMap() {
     const REGION_DATA = {
         "전북": 1907, "제주": 615, "경남": 2675, "경북": 3054, "전남": 1685,
         "충남": 1494, "충북": 1725, "경기": 10032, "세종": 151, "울산": 817,
@@ -38,27 +23,24 @@ function renderChoroplethMap() {
         "제주특별자치도": "제주", "제주도": "제주"
     };
 
-    const GRADES = [0, 500, 1500, 3000, 5000, 10000, 15000];
-    const GEOJSON_URL = 'https://cdn.jsdelivr.net/gh/southkorea/southkorea-maps@master/kostat/2018/json/skorea-provinces-2018-geo.json';
-
     function getColor(v) {
-        return v > 15000 ? '#08306b' :
-               v > 10000 ? '#08519c' :
-               v >  5000 ? '#2171b5' :
-               v >  3000 ? '#4292c6' :
-               v >  1500 ? '#6baed6' :
-               v >   500 ? '#9ecae1' :
-                           '#deebf7';
+        return v > 15000 ? '#8B1A1A' :
+               v > 10000 ? '#A52A2A' :
+               v >  5000 ? '#CD5C5C' :
+               v >  3000 ? '#E9967A' :
+               v >  1500 ? '#F08080' :
+               v >   500 ? '#FA8072' :
+                           '#FFA07A';
     }
 
-    // 지도 객체 생성 (전국 중심)
-    const map = L.map('map').setView([36.3, 127.8], 7);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 18,
-        attribution: '© OpenStreetMap contributors'
+    const map = L.map('map', { scrollWheelZoom: false }).setView([36.3, 127.8], 7);
+    
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 20
     }).addTo(map);
 
-    // 정보 패널
     const infoCtrl = L.control({ position: 'topleft' });
     infoCtrl.onAdd = function () {
         this._div = L.DomUtil.create('div', 'info-box');
@@ -72,33 +54,31 @@ function renderChoroplethMap() {
     };
     infoCtrl.addTo(map);
 
-    function styleFeature(feature) {
-        const sido = SIDO_NAME_MAP[feature.properties.name] || feature.properties.name;
-        const v = REGION_DATA[sido] || 0;
-        return {
-            fillColor: getColor(v),
-            fillOpacity: 0.78,
-            color: 'white',
-            weight: 1.2
-        };
-    }
-
-    let geoLayer;
+    const GEOJSON_URL = 'https://cdn.jsdelivr.net/gh/southkorea/southkorea-maps@master/kostat/2018/json/skorea-provinces-2018-geo.json';
 
     fetch(GEOJSON_URL)
         .then(r => r.json())
         .then(geo => {
-            geoLayer = L.geoJSON(geo, {
-                style: styleFeature,
+            const geoLayer = L.geoJSON(geo, {
+                style: (feature) => {
+                    const sido = SIDO_NAME_MAP[feature.properties.name] || feature.properties.name;
+                    const v = REGION_DATA[sido] || 0;
+                    return {
+                        fillColor: getColor(v),
+                        fillOpacity: 0.8,
+                        color: 'white',
+                        weight: 1
+                    };
+                },
                 onEachFeature: (feature, layer) => {
                     const sido = SIDO_NAME_MAP[feature.properties.name] || feature.properties.name;
                     const v = REGION_DATA[sido] || 0;
-                    layer.bindPopup(`<b>${sido}</b>: ${v.toLocaleString()}건`);
-                    layer.bindTooltip(sido, { permanent: true, direction: 'center', className: 'sido-label' });
+                    
                     layer.on({
                         mouseover: (e) => {
                             const l = e.target;
-                            l.setStyle({ weight: 3, color: '#1e3a8a', fillOpacity: 0.92 });
+                            l.setStyle({ weight: 3, color: '#333', fillOpacity: 0.9 });
+                            l.bringToFront();
                             infoCtrl.update(sido, v);
                         },
                         mouseout: (e) => {
@@ -106,129 +86,97 @@ function renderChoroplethMap() {
                             infoCtrl.update();
                         }
                     });
+                    layer.bindTooltip(sido, { permanent: true, direction: 'center', className: 'sido-label' });
                 }
             }).addTo(map);
             map.fitBounds(geoLayer.getBounds());
         });
 
-    // 범례
     const legend = L.control({ position: 'bottomright' });
     legend.onAdd = () => {
         const div = L.DomUtil.create('div', 'info-box legend');
+        const grades = [0, 500, 1500, 3000, 5000, 10000, 15000];
         let html = '<b>사고건수</b><br>';
-        for (let i = 0; i < GRADES.length; i++) {
-            const from = GRADES[i];
-            const to = GRADES[i + 1];
-            html += `<i style="background:${getColor(from + 1)}"></i>` +
-                    `${from.toLocaleString()}${to ? '&ndash;' + to.toLocaleString() : '+'}<br>`;
+        for (let i = 0; i < grades.length; i++) {
+            html += `<i style="background:${getColor(grades[i] + 1)}"></i>` +
+                    grades[i].toLocaleString() + (grades[i+1] ? '&ndash;' + grades[i+1].toLocaleString() : '+') + '<br>';
         }
         div.innerHTML = html;
         return div;
     };
     legend.addTo(map);
-
-    // 반응형 대응
-    window.addEventListener('resize', () => {
-        map.invalidateSize();
-    });
 }
 
-/**
- * Chart.js를 이용한 시도별 교통사고 현황 버블차트 렌더링
- */
-function renderBubbleChart() {
+/* 2. Chart.js Bubble Chart */
+function initBubbleChart() {
     const rawData = [
-        { "sido": "전북", "x": 1907, "y": 136, "casualties": 1971 },
-        { "sido": "제주", "x": 615, "y": 15, "casualties": 640 },
-        { "sido": "경남", "x": 2675, "y": 116, "casualties": 2778 },
-        { "sido": "경북", "x": 3054, "y": 123, "casualties": 3173 },
-        { "sido": "전남", "x": 1685, "y": 134, "casualties": 1809 },
-        { "sido": "충남", "x": 1494, "y": 77, "casualties": 1534 },
-        { "sido": "충북", "x": 1725, "y": 87, "casualties": 1841 },
-        { "sido": "경기", "x": 10032, "y": 406, "casualties": 10563 },
-        { "sido": "세종", "x": 151, "y": 2, "casualties": 161 },
-        { "sido": "울산", "x": 817, "y": 27, "casualties": 873 },
-        { "sido": "대전", "x": 1436, "y": 88, "casualties": 1518 },
-        { "sido": "광주", "x": 1276, "y": 78, "casualties": 1339 },
-        { "sido": "인천", "x": 1223, "y": 78, "casualties": 1273 },
-        { "sido": "대구", "x": 5903, "y": 177, "casualties": 6175 },
-        { "sido": "부산", "x": 4206, "y": 204, "casualties": 4430 },
-        { "sido": "서울", "x": 18132, "y": 585, "casualties": 19324 },
-        { "sido": "강원", "x": 1013, "y": 66, "casualties": 1055 }
+        { "sido": "전북특별자치도", "x": 1907, "y": 136, "casualties": 1971 },
+        { "sido": "제주특별자치도", "x": 615, "y": 15, "casualties": 640 },
+        { "sido": "경상남도", "x": 2675, "y": 116, "casualties": 2778 },
+        { "sido": "경상북도", "x": 3054, "y": 123, "casualties": 3173 },
+        { "sido": "전라남도", "x": 1685, "y": 134, "casualties": 1809 },
+        { "sido": "충청남도", "x": 1494, "y": 77, "casualties": 1534 },
+        { "sido": "충청북도", "x": 1725, "y": 87, "casualties": 1841 },
+        { "sido": "경기도", "x": 10032, "y": 406, "casualties": 10563 },
+        { "sido": "세종특별자치시", "x": 151, "y": 2, "casualties": 161 },
+        { "sido": "울산광역시", "x": 817, "y": 27, "casualties": 873 },
+        { "sido": "대전광역시", "x": 1436, "y": 88, "casualties": 1518 },
+        { "sido": "광주광역시", "x": 1276, "y": 78, "casualties": 1339 },
+        { "sido": "인천광역시", "x": 1223, "y": 78, "casualties": 1273 },
+        { "sido": "대구광역시", "x": 5903, "y": 177, "casualties": 6175 },
+        { "sido": "부산광역시", "x": 4206, "y": 204, "casualties": 4430 },
+        { "sido": "서울특별시", "x": 18132, "y": 585, "casualties": 19324 },
+        { "sido": "강원특별자치도", "x": 1013, "y": 66, "casualties": 1055 }
     ];
-
-    const colors = [
-        'rgba(200, 147, 44, 0.6)', 'rgba(139, 26, 26, 0.6)', 'rgba(54, 162, 235, 0.6)',
-        'rgba(75, 192, 192, 0.6)', 'rgba(153, 102, 255, 0.6)', 'rgba(255, 159, 64, 0.6)',
-        'rgba(199, 199, 199, 0.6)', 'rgba(83, 102, 255, 0.6)', 'rgba(255, 99, 255, 0.6)',
-        'rgba(99, 255, 132, 0.6)', 'rgba(255, 159, 159, 0.6)', 'rgba(159, 255, 64, 0.6)',
-        'rgba(64, 159, 255, 0.6)', 'rgba(206, 86, 255, 0.6)', 'rgba(86, 206, 255, 0.6)',
-        'rgba(255, 86, 86, 0.6)', 'rgba(86, 255, 206, 0.6)'
-    ];
-
-    const datasets = rawData.map((d, index) => ({
-        label: d.sido,
-        data: [{
-            x: d.x,
-            y: d.y,
-            r: Math.sqrt(d.casualties) * 0.3,
-            casualtiesRaw: d.casualties
-        }],
-        backgroundColor: colors[index % colors.length],
-        borderColor: colors[index % colors.length].replace('0.6', '1'),
-        borderWidth: 1
-    }));
 
     const ctx = document.getElementById('bubbleChart').getContext('2d');
     new Chart(ctx, {
         type: 'bubble',
-        data: { datasets },
+        data: {
+            datasets: rawData.map((d, i) => ({
+                label: d.sido,
+                data: [{
+                    x: d.x,
+                    y: d.y,
+                    r: Math.sqrt(d.casualties) * 0.4,
+                    rawCasualties: d.casualties
+                }],
+                backgroundColor: `rgba(139, 26, 26, ${0.3 + (i % 5) * 0.1})`,
+                borderColor: '#8B1A1A',
+                borderWidth: 1
+            }))
+        },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { position: 'right' },
+                legend: { display: false },
                 tooltip: {
                     callbacks: {
-                        label: (context) => {
-                            const raw = context.raw;
-                            return [
-                                context.dataset.label,
-                                `사고건수: ${raw.x.toLocaleString()}건`,
-                                `사망자수: ${raw.y.toLocaleString()}명`,
-                                `사상자수: ${raw.casualtiesRaw.toLocaleString()}명`
-                            ];
+                        label: (ctx) => {
+                            const d = ctx.raw;
+                            return `${ctx.dataset.label}: 사고 ${d.x}건, 사망 ${d.y}명, 사상 ${d.rawCasualties}명`;
                         }
                     }
                 }
             },
             scales: {
-                x: { title: { display: true, text: '사고건수 (건)' } },
-                y: { title: { display: true, text: '사망자수 (명)' } }
+                x: { title: { display: true, text: '사고건수' } },
+                y: { title: { display: true, text: '사망자수' } }
             }
         }
     });
 }
 
-/**
- * IntersectionObserver를 이용한 페이드인 애니메이션
- */
-function initScrollAnimations() {
-    const observerOptions = {
-        root: null,
-        rootMargin: '0px',
-        threshold: 0.1
-    };
-
-    const observer = new IntersectionObserver((entries, observer) => {
+/* 3. Scroll Animation (Intersection Observer) */
+function initScrollAnimation() {
+    const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('visible');
-                observer.unobserve(entry.target);
             }
         });
-    }, observerOptions);
+    }, { threshold: 0.1 });
 
-    const fadeElements = document.querySelectorAll('.fade-in');
-    fadeElements.forEach(el => observer.observe(el));
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
 }
